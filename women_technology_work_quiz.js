@@ -1,6 +1,6 @@
 let totalImages = 30; // 6 questions × 5 images
-let imagePrefix = "images/img";
-let imageExtension = ".png";
+let imagePrefix = "brush";
+let imageExtension = ".jpg";
 
 let images = [];
 let imageSets = [];
@@ -20,7 +20,7 @@ let showFinal = false;
 let frameInterval = 15;
 let lastSwitchFrame = 0;
 
-let linkURL = "https://example.com";
+let linkURL = "https://sarahbuckius.com";
 let finalLink;
 
 let imgW, imgH;
