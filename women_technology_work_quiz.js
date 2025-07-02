@@ -1,4 +1,4 @@
-let totalImages = 30; // 6 questions × 5 images
+let totalImages = 30; // 6 questions × 5 images each
 let imagePrefix = "brush";
 let imageExtension = ".jpg";
 
@@ -17,10 +17,10 @@ let showImage = true;
 let showFeedback = false;
 let showFinal = false;
 
-let frameInterval = 15;
+let frameInterval = 15; // 0.25 seconds at 60 fps
 let lastSwitchFrame = 0;
 
-let linkURL = "https://sarahbuckius.com";
+let linkURL = "https://sarahbuckius.com"; // FINAL link
 let finalLink;
 
 let imgW, imgH;
@@ -47,6 +47,7 @@ function setup() {
   finalLink.style("color", "#00ffff");
   finalLink.style("font-size", `${baseFont}px`);
   finalLink.style("text-decoration", "none");
+  finalLink.style("text-align", "center");
   finalLink.hide();
 
   lastSwitchFrame = frameCount;
@@ -74,6 +75,7 @@ function draw() {
     return;
   }
 
+  // Show current question
   textSize(baseFont * 1.2);
   text(questions[currentSet], width / 2, baseFont * 1.6);
 
@@ -114,7 +116,6 @@ function windowResized() {
   updateSizing();
 }
 
-// Dynamically scale sizes based on screen size
 function updateSizing() {
   imgW = min(width, height) * 0.6;
   imgH = imgW;
