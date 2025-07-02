@@ -1,164 +1,122 @@
-let imagesData = [];
-let boxes = [];
-let result = "";
-let question = 'Which image represents "work"?';
-let correctLabel;
-let timeLimit = 10;
-let timeLeft;
-let points = 0;
-let level = 1;
-let badge = "";
-let gameActive = true;
-let numImages = 30;
-let imagesToDisplay = 6;
-let maxLevels = 5;
+let totalImages = 30; // 6 questions × 5 images
+let imagePrefix = "images/img";
+let imageExtension = ".png";
 
-let correctSound, wrongSound;
-let nextPageShown = false;
+let images = [];
+let imageSets = [];
+let questions = [];
+let feedbackTexts = [];
+
+let imagesPerSet = 5;
+let numQuestions = 6;
+
+let currentSet = 0;
+let currentImageIndex = 0;
+
+let showImage = true;
+let showFeedback = false;
+let showFinal = false;
+
+let frameInterval = 15;
+let lastSwitchFrame = 0;
+
+let linkURL = "https://example.com";
+let finalLink;
+
+let imgW, imgH;
+let baseFont;
 
 function preload() {
-  // Load image files
-  for (let i = 1; i <= numImages; i++) {
-    let label = "Image" + i;
-    let filename = `brush${i}.jpg`;
-    let img = loadImage(filename);
-    imagesData.push({ filename, label, img });
+  for (let i = 1; i <= totalImages; i++) {
+    images.push(loadImage(`${imagePrefix}${i}${imageExtension}`));
   }
-
-  // Load sound files
-  soundFormats('mp3', 'wav');
-  correctSound = loadSound('sound3.mp3');
-  wrongSound = loadSound('sound5.mp3');
 }
 
 function setup() {
-  createCanvas(1000, 600);
+  createCanvas(windowWidth, windowHeight);
   textAlign(CENTER, CENTER);
-  imageMode(CORNER);
-  textSize(20);
-  frameRate(30);
-  startLevel();
-}
+  updateSizing();
 
-function startLevel() {
-  boxes = [];
-  result = "";
-  gameActive = true;
-  timeLeft = timeLimit * 30;
-
-  let selectedImages = shuffle(imagesData).slice(0, imagesToDisplay);
-  let correctIndex = floor(random(selectedImages.length));
-  correctLabel = selectedImages[correctIndex].label;
-
-  for (let i = 0; i < selectedImages.length; i++) {
-    selectedImages[i].isWork = (i === correctIndex);
+  for (let i = 0; i < images.length; i += imagesPerSet) {
+    imageSets.push(images.slice(i, i + imagesPerSet));
+    questions.push("Which image speaks to you the most? (Set " + (i / imagesPerSet + 1) + ")");
+    feedbackTexts.push("You selected from set " + (i / imagesPerSet + 1) + ".");
   }
 
-  let spacing = width / selectedImages.length;
+  finalLink = createA(linkURL, "Click here to continue", "_blank");
+  finalLink.style("color", "#00ffff");
+  finalLink.style("font-size", `${baseFont}px`);
+  finalLink.style("text-decoration", "none");
+  finalLink.hide();
 
-  for (let i = 0; i < selectedImages.length; i++) {
-    boxes.push({
-      img: selectedImages[i].img,
-      label: selectedImages[i].label,
-      isWork: selectedImages[i].isWork,
-      x: i * spacing + spacing / 2 - 60,
-      y: height / 2 - 60,
-      w: 120,
-      h: 120
-    });
-  }
+  lastSwitchFrame = frameCount;
 }
 
 function draw() {
-  background(193, 8, 85);
+  background(30);
+  fill(255);
+  textSize(baseFont);
 
-  if (gameActive) {
-    timeLeft--;
-    if (timeLeft <= 0) {
-      result = "⏱ Time's Up!";
-      gameActive = false;
-      setTimeout(() => {
-        startLevel(); // retry same level
-      }, 1000);
+  if (showFinal) {
+    textSize(baseFont * 1.2);
+    text("Thank you!", width / 2, height / 2 - imgH / 2);
+    finalLink.position(width / 2 - finalLink.elt.offsetWidth / 2, height / 2 + imgH / 4);
+    finalLink.show();
+    return;
+  } else {
+    finalLink.hide();
+  }
+
+  if (showFeedback) {
+    textSize(baseFont);
+    text(feedbackTexts[currentSet], width / 2, height / 2 - 20);
+    text("Click to continue.", width / 2, height / 2 + 20);
+    return;
+  }
+
+  textSize(baseFont * 1.2);
+  text(questions[currentSet], width / 2, baseFont * 1.6);
+
+  if (showImage) {
+    if (frameCount - lastSwitchFrame >= frameInterval) {
+      currentImageIndex = (currentImageIndex + 1) % imageSets[currentSet].length;
+      lastSwitchFrame = frameCount;
     }
-  }
 
-  fill(0);
-  textSize(24);
-  text(`Level ${level} — ${question}`, width / 2, 40);
-
-  for (let box of boxes) {
-    image(box.img, box.x, box.y, box.w, box.h);
-  }
-
-  if (result) {
-    textSize(28);
-    fill(result === "You Win!" ? "green" : "red");
-    text(result, width / 2, height - 60);
-  }
-
-  // Timer, points, badge
-  textSize(18);
-  fill(0);
-  text(`⏳ ${Math.ceil(timeLeft / 30)}s`, width - 60, 30);
-  text(`⭐ Points: ${points}`, 100, 30);
-  if (badge) {
-    text(`🏅 Badge: ${badge}`, width / 2, height - 20);
-  }
-
-  if (!gameActive && level > maxLevels && !nextPageShown) {
-    showNextLink();
-    nextPageShown = true;
+    imageMode(CENTER);
+    let img = imageSets[currentSet][currentImageIndex];
+    image(img, width / 2, height / 2 + 20, imgW, imgH);
   }
 }
 
 function mousePressed() {
-  if (!gameActive) return;
-
-  for (let box of boxes) {
-    if (
-      mouseX > box.x &&
-      mouseX < box.x + box.w &&
-      mouseY > box.y &&
-      mouseY < box.y + box.h
-    ) {
-      gameActive = false;
-
-      if (box.isWork) {
-        correctSound.play();
-        result = "You Win!";
-        let bonus = Math.ceil(timeLeft / 30) * 10;
-        points += bonus;
-
-        // Badge logic
-        if (points >= 300 && !badge) badge = "Work Wizard";
-        else if (points >= 150 && !badge) badge = "Productivity Pro";
-        else if (points >= 75 && !badge) badge = "Office Rookie";
-
-        setTimeout(() => {
-          level++;
-          if (level > maxLevels) {
-            // stop & show link in draw()
-          } else {
-            startLevel();
-          }
-        }, 1000);
-      } else {
-        wrongSound.play();
-        result = "❌ Try Again!";
-        setTimeout(() => {
-          startLevel(); // retry current level
-        }, 1000);
-      }
-      break;
+  if (showFeedback) {
+    currentSet++;
+    if (currentSet >= numQuestions) {
+      showFinal = true;
+    } else {
+      currentImageIndex = 0;
+      lastSwitchFrame = frameCount;
+      showImage = true;
+      showFeedback = false;
     }
+    return;
+  }
+
+  if (showImage) {
+    showImage = false;
+    showFeedback = true;
   }
 }
 
-function showNextLink() {
-  let link = createA("https://sbuckius.github.io/robot_instruction_1/", "→ Continue to the next experience", "_self");
-  link.position(width / 2 - 100, height - 20);
-  link.style("font-size", "20px");
-  link.style("color", "blue");
-  link.style("text-decoration", "none");
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  updateSizing();
+}
+
+// Dynamically scale sizes based on screen size
+function updateSizing() {
+  imgW = min(width, height) * 0.6;
+  imgH = imgW;
+  baseFont = width < 500 ? 16 : 20;
 }
