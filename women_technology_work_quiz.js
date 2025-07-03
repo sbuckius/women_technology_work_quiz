@@ -154,7 +154,7 @@ function mousePressed() {
 
 function showNextLink() {
   let link = createA(
-    "https://sbuckius.github.io/graph_fabric_woven_pixel/",
+    "https://sbuckius.github.io/robot_instruction_1/",
     "→ Continue to the next experience",
     "_self"
   );
