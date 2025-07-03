@@ -17,7 +17,6 @@ let correctSound, wrongSound;
 let nextPageShown = false;
 
 function preload() {
-  // Load image files
   for (let i = 1; i <= numImages; i++) {
     let label = "Image" + i;
     let filename = `brush${i}.jpg`;
@@ -25,19 +24,22 @@ function preload() {
     imagesData.push({ filename, label, img });
   }
 
-  // Load sound files
   soundFormats('mp3', 'wav');
   correctSound = loadSound('sound3.mp3');
   wrongSound = loadSound('sound5.mp3');
 }
 
 function setup() {
-  createCanvas(1000, 600);
+  createCanvas(windowWidth, windowHeight);
   textAlign(CENTER, CENTER);
   imageMode(CORNER);
-  textSize(20);
   frameRate(30);
   startLevel();
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  startLevel(); // re-layout on resize
 }
 
 function startLevel() {
@@ -55,16 +57,17 @@ function startLevel() {
   }
 
   let spacing = width / selectedImages.length;
+  let boxSize = min(width, height) / 5;
 
   for (let i = 0; i < selectedImages.length; i++) {
     boxes.push({
       img: selectedImages[i].img,
       label: selectedImages[i].label,
       isWork: selectedImages[i].isWork,
-      x: i * spacing + spacing / 2 - 60,
-      y: height / 2 - 60,
-      w: 120,
-      h: 120
+      x: i * spacing + spacing / 2 - boxSize / 2,
+      y: height / 2 - boxSize / 2,
+      w: boxSize,
+      h: boxSize
     });
   }
 }
@@ -77,28 +80,25 @@ function draw() {
     if (timeLeft <= 0) {
       result = "⏱ Time's Up!";
       gameActive = false;
-      setTimeout(() => {
-        startLevel(); // retry same level
-      }, 1000);
+      setTimeout(startLevel, 1000);
     }
   }
 
   fill(0);
-  textSize(24);
-  text(`Level ${level} — ${question}`, width / 2, 40);
+  textSize(height * 0.03);
+  text(`Level ${level} — ${question}`, width / 2, height * 0.05);
 
   for (let box of boxes) {
     image(box.img, box.x, box.y, box.w, box.h);
   }
 
   if (result) {
-    textSize(28);
+    textSize(height * 0.04);
     fill(result === "You Win!" ? "green" : "red");
-    text(result, width / 2, height - 60);
+    text(result, width / 2, height - height * 0.1);
   }
 
-  // Timer, points, badge
-  textSize(18);
+  textSize(height * 0.025);
   fill(0);
   text(`⏳ ${Math.ceil(timeLeft / 30)}s`, width - 60, 30);
   text(`⭐ Points: ${points}`, 100, 30);
@@ -130,7 +130,6 @@ function mousePressed() {
         let bonus = Math.ceil(timeLeft / 30) * 10;
         points += bonus;
 
-        // Badge logic
         if (points >= 300 && !badge) badge = "Work Wizard";
         else if (points >= 150 && !badge) badge = "Productivity Pro";
         else if (points >= 75 && !badge) badge = "Office Rookie";
@@ -138,7 +137,7 @@ function mousePressed() {
         setTimeout(() => {
           level++;
           if (level > maxLevels) {
-            // stop & show link in draw()
+            // end game, show link
           } else {
             startLevel();
           }
@@ -146,9 +145,7 @@ function mousePressed() {
       } else {
         wrongSound.play();
         result = "❌ Try Again!";
-        setTimeout(() => {
-          startLevel(); // retry current level
-        }, 1000);
+        setTimeout(startLevel, 1000);
       }
       break;
     }
@@ -156,9 +153,13 @@ function mousePressed() {
 }
 
 function showNextLink() {
-  let link = createA("https://sbuckius.github.io/graph_fabric_woven_pixel/", "→ Continue to the next experience", "_self");
-  link.position(width / 2 - 100, height - 20);
-  link.style("font-size", "20px");
+  let link = createA(
+    "https://sbuckius.github.io/graph_fabric_woven_pixel/",
+    "→ Continue to the next experience",
+    "_self"
+  );
+  link.position(width / 2 - 120, height - 40);
+  link.style("font-size", `${height * 0.025}px`);
   link.style("color", "blue");
   link.style("text-decoration", "none");
 }
