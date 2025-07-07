@@ -154,7 +154,7 @@ function mousePressed() {
 
 function showNextLink() {
   let link = createA(
-    "https://sbuckius.github.io/robot_instruction_1/",
+    "https://sbuckius.github.io/robot_instruction_01/",
     "→ Continue to the next experience",
     "_self"
   );
